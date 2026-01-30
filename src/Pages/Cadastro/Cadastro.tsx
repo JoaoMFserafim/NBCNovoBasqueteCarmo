@@ -299,7 +299,19 @@ export default function CadastroAtleta() {
                   value={novoAtleta.dataNascimento}
                   onChange={handleChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="
+    w-full
+    h-11
+    px-3
+    border
+    border-gray-300
+    rounded-md
+    text-sm
+    focus:outline-none
+    focus:ring-2
+    focus:ring-blue-500
+    focus:border-blue-500
+  "
                 />
               </div>
 
@@ -502,25 +514,34 @@ export default function CadastroAtleta() {
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
                       <div className="bg-gray-50 rounded p-2">
                         <p className="text-xs text-gray-600 mb-1">Idade</p>
-                        <p className="font-semibold text-gray-800">{a.idade} anos</p>
+                        <p className="font-semibold text-gray-800">
+                          {a.idade} anos
+                        </p>
                       </div>
                       <div className="bg-gray-50 rounded p-2">
                         <p className="text-xs text-gray-600 mb-1">Altura</p>
-                        <p className="font-semibold text-gray-800">{a.altura} cm</p>
+                        <p className="font-semibold text-gray-800">
+                          {a.altura} cm
+                        </p>
                       </div>
                       <div className="bg-gray-50 rounded p-2">
                         <p className="text-xs text-gray-600 mb-1">Peso</p>
-                        <p className="font-semibold text-gray-800">{a.peso} kg</p>
+                        <p className="font-semibold text-gray-800">
+                          {a.peso} kg
+                        </p>
                       </div>
                       <div className="bg-gray-50 rounded p-2">
                         <p className="text-xs text-gray-600 mb-1">Telefone</p>
-                        <p className="font-semibold text-gray-800 text-sm">{a.telefone}</p>
+                        <p className="font-semibold text-gray-800 text-sm">
+                          {a.telefone}
+                        </p>
                       </div>
                     </div>
 
                     <div className="bg-gray-50 rounded p-2">
                       <p className="text-sm text-gray-700">
-                        {a.endereco}, {a.numero} - {a.cidade}/{a.estado} - {a.cep}
+                        {a.endereco}, {a.numero} - {a.cidade}/{a.estado} -{" "}
+                        {a.cep}
                       </p>
                     </div>
                   </div>
