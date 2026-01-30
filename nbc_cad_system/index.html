@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>nbc_cad_system</title>
+    <!-- Firebase via CDN -->
+    <script src="https://www.gstatic.com/firebasejs/12.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.8.0/firebase-analytics-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.8.0/firebase-performance-compat.js"></script>
+
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyBmhQXw1a0VS9QMifuXFMk4Y1sU0iPNY9E",
+
+        authDomain: "nbccadastroatletas-61e51.firebaseapp.com",
+
+        projectId: "nbccadastroatletas-61e51",
+
+        storageBucket: "nbccadastroatletas-61e51.firebasestorage.app",
+
+        messagingSenderId: "1013891072864",
+
+        appId: "1:1013891072864:web:ad29e3c4828b1135815405",
+      };
+
+      firebase.initializeApp(firebaseConfig);
+
+      if (firebase.performance) {
+        firebase.performance();
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
