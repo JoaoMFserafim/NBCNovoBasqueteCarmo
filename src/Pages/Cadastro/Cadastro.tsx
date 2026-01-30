@@ -4,7 +4,12 @@ import { IMaskInput } from "react-imask";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import type { Atleta } from "../../Types/Atleta";
-import { addAtleta, updateAtleta, deleteAtleta, subscribeAtletas } from "../../services/atletasSer";
+import {
+  addAtleta,
+  updateAtleta,
+  deleteAtleta,
+  subscribeAtletas,
+} from "../../services/atletasSer";
 
 /** Ajuste se necessário: coloque logo em public/logo.png */
 const logoUrl = "/logo.png";
@@ -46,8 +51,8 @@ export default function CadastroAtleta() {
     cpf: "",
     dataNascimento: "",
     idade: 0,
-    altura: 0,
-    peso: 0,
+    altura: "",
+    peso: "",
     endereco: "",
     numero: "",
     cidade: "",
@@ -67,7 +72,11 @@ export default function CadastroAtleta() {
     const { name, value } = e.target;
     if (name === "dataNascimento") {
       const idadeCalculada = calcularIdade(value);
-      setNovoAtleta({ ...novoAtleta, dataNascimento: value, idade: idadeCalculada });
+      setNovoAtleta({
+        ...novoAtleta,
+        dataNascimento: value,
+        idade: idadeCalculada,
+      });
     } else if (name === "altura" || name === "peso") {
       setNovoAtleta({ ...novoAtleta, [name]: Number(value) });
     } else {
@@ -91,8 +100,8 @@ export default function CadastroAtleta() {
         cpf: "",
         dataNascimento: "",
         idade: 0,
-        altura: 0,
-        peso: 0,
+        altura: "",
+        peso: "",
         endereco: "",
         numero: "",
         cidade: "",
@@ -144,7 +153,14 @@ export default function CadastroAtleta() {
           const logoWidth = 60;
           const logoHeight = 60;
           try {
-            doc.addImage(logoDataUrl, "PNG", marginLeft, y - 10, logoWidth, logoHeight);
+            doc.addImage(
+              logoDataUrl,
+              "PNG",
+              marginLeft,
+              y - 10,
+              logoWidth,
+              logoHeight,
+            );
           } catch (e) {
             console.warn("addImage falhou:", e);
           }
@@ -194,7 +210,11 @@ export default function CadastroAtleta() {
         startY: 100,
         margin: { left: marginLeft, right: marginRight },
         styles: { fontSize: 8, cellPadding: 4 },
-        headStyles: { fillColor: [41, 128, 185], textColor: [255, 255, 255], halign: "center" },
+        headStyles: {
+          fillColor: [41, 128, 185],
+          textColor: [255, 255, 255],
+          halign: "center",
+        },
         didDrawPage: (data: any) => {
           const pageCount = doc.getNumberOfPages();
           header();
@@ -202,7 +222,11 @@ export default function CadastroAtleta() {
           doc.setFontSize(10);
           doc.setTextColor(120);
           const pageText = `Página ${data.pageNumber} de ${pageCount}`;
-          doc.text(pageText, pageWidth - marginRight - doc.getTextWidth(pageText), pageHeight - 30);
+          doc.text(
+            pageText,
+            pageWidth - marginRight - doc.getTextWidth(pageText),
+            pageHeight - 30,
+          );
         },
       });
 
@@ -217,7 +241,9 @@ export default function CadastroAtleta() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center p-4">
-      <h2 className="text-2xl font-bold text-blue-600 mb-6">Cadastro de Atletas</h2>
+      <h2 className="text-2xl font-bold text-blue-600 mb-6">
+        Cadastro de Atletas
+      </h2>
 
       <div className="flex flex-col lg:flex-row gap-8 w-full max-w-6xl">
         <form
@@ -236,7 +262,9 @@ export default function CadastroAtleta() {
             mask="000.000.000-00"
             name="cpf"
             value={novoAtleta.cpf}
-            onAccept={(value: string) => setNovoAtleta({ ...novoAtleta, cpf: value })}
+            onAccept={(value: string) =>
+              setNovoAtleta({ ...novoAtleta, cpf: value })
+            }
             placeholder="CPF"
             className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-400"
           />
@@ -246,8 +274,9 @@ export default function CadastroAtleta() {
             type="date"
             value={novoAtleta.dataNascimento}
             onChange={handleChange}
-            className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-400"
+            className="w-full px-4 py-3    text-[16px]    font-normal    border border-gray-300    rounded-lg    bg-white    text-gray-900    outline-none    focus:border-indigo-600    focus:ring-2    focus:ring-indigo-600/20"
           />
+          
           <p>Idade</p>
           <input
             name="idade"
@@ -312,7 +341,9 @@ export default function CadastroAtleta() {
             mask="00000-000"
             name="cep"
             value={novoAtleta.cep}
-            onAccept={(value: string) => setNovoAtleta({ ...novoAtleta, cep: value })}
+            onAccept={(value: string) =>
+              setNovoAtleta({ ...novoAtleta, cep: value })
+            }
             placeholder="CEP"
             className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-400"
           />
@@ -321,7 +352,9 @@ export default function CadastroAtleta() {
             mask="(00) 00000-0000"
             name="telefone"
             value={novoAtleta.telefone}
-            onAccept={(value: string) => setNovoAtleta({ ...novoAtleta, telefone: value })}
+            onAccept={(value: string) =>
+              setNovoAtleta({ ...novoAtleta, telefone: value })
+            }
             placeholder="Telefone"
             className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-400"
           />
@@ -355,10 +388,15 @@ export default function CadastroAtleta() {
           <h3 className="text-xl font-semibold mb-4">Lista de Atletas</h3>
           <ul className="space-y-3">
             {atletas.length === 0 && (
-              <li className="text-sm text-gray-500">Nenhum atleta cadastrado ainda.</li>
+              <li className="text-sm text-gray-500">
+                Nenhum atleta cadastrado ainda.
+              </li>
             )}
             {atletas.map((a) => (
-              <li key={a.id} className="bg-white shadow rounded p-4 text-sm text-gray-700">
+              <li
+                key={a.id}
+                className="bg-white shadow rounded p-4 text-sm text-gray-700"
+              >
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="font-bold text-blue-600">{a.nome}</p>
@@ -392,7 +430,8 @@ export default function CadastroAtleta() {
                 </div>
 
                 <p className="mt-2 text-sm">
-                  Endereço: {a.endereco}, {a.numero} — {a.cidade}/{a.estado} — CEP: {a.cep}
+                  Endereço: {a.endereco}, {a.numero} — {a.cidade}/{a.estado} —
+                  CEP: {a.cep}
                 </p>
               </li>
             ))}

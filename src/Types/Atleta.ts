@@ -4,8 +4,8 @@ export type Atleta = {
   cpf: string;
   dataNascimento: string;
   idade: number;
-  altura: number;
-  peso: number;
+  altura: string;
+  peso: string;
   endereco: string;
   numero: string;
   cidade: string;
