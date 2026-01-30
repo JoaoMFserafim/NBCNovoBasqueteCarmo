@@ -240,202 +240,327 @@ export default function CadastroAtleta() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center p-4">
-      <h2 className="text-2xl font-bold text-blue-600 mb-6">
-        Cadastro de Atletas
-      </h2>
+    <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl sm:text-5xl font-bold text-transparent bg-clip-text bg-linear-to-r from-blue-600 to-indigo-600 mb-2">
+            Cadastro de Atletas
+          </h2>
+          <p className="text-gray-600 text-lg">
+            Gerencie informações de atletas de forma simples e eficiente
+          </p>
+        </div>
 
-      <div className="flex flex-col lg:flex-row gap-8 w-full max-w-6xl">
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white shadow-md rounded-lg p-6 w-full lg:w-1/2 space-y-4"
-        >
-          <input
-            name="nome"
-            placeholder="Nome"
-            value={novoAtleta.nome}
-            onChange={handleChange}
-            className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-400"
-          />
-
-          <IMaskInput
-            mask="000.000.000-00"
-            name="cpf"
-            value={novoAtleta.cpf}
-            onAccept={(value: string) =>
-              setNovoAtleta({ ...novoAtleta, cpf: value })
-            }
-            placeholder="CPF"
-            className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-400"
-          />
-
-          <input
-            name="dataNascimento"
-            type="date"
-            value={novoAtleta.dataNascimento}
-            onChange={handleChange}
-            className="w-full px-4 py-3    text-[16px]    font-normal    border border-gray-300    rounded-lg    bg-white    text-gray-900    outline-none    focus:border-indigo-600    focus:ring-2    focus:ring-indigo-600/20"
-          />
-          
-          <p>Idade</p>
-          <input
-            name="idade"
-            type="number"
-            placeholder="Idade"
-            value={novoAtleta.idade}
-            readOnly
-            className="w-full p-2 border rounded bg-gray-100"
-          />
-          <p>Altura(cm)</p>
-          <input
-            name="altura"
-            type="number"
-            placeholder="Altura (cm)"
-            value={novoAtleta.altura}
-            onChange={handleChange}
-            className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-400"
-          />
-          <p>Peso(kg)</p>
-          <input
-            name="peso"
-            type="number"
-            placeholder="Peso (kg)"
-            value={novoAtleta.peso}
-            onChange={handleChange}
-            className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-400"
-          />
-
-          <input
-            name="endereco"
-            placeholder="Endereço"
-            value={novoAtleta.endereco}
-            onChange={handleChange}
-            className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-400"
-          />
-
-          <input
-            name="numero"
-            placeholder="Número"
-            value={novoAtleta.numero}
-            onChange={handleChange}
-            className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-400"
-          />
-
-          <input
-            name="cidade"
-            placeholder="Cidade"
-            value={novoAtleta.cidade}
-            onChange={handleChange}
-            className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-400"
-          />
-
-          <input
-            name="estado"
-            placeholder="Estado"
-            value={novoAtleta.estado}
-            onChange={handleChange}
-            className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-400"
-          />
-
-          <IMaskInput
-            mask="00000-000"
-            name="cep"
-            value={novoAtleta.cep}
-            onAccept={(value: string) =>
-              setNovoAtleta({ ...novoAtleta, cep: value })
-            }
-            placeholder="CEP"
-            className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-400"
-          />
-
-          <IMaskInput
-            mask="(00) 00000-0000"
-            name="telefone"
-            value={novoAtleta.telefone}
-            onAccept={(value: string) =>
-              setNovoAtleta({ ...novoAtleta, telefone: value })
-            }
-            placeholder="Telefone"
-            className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-400"
-          />
-
-          <div className="flex gap-3">
-            <button
-              type="submit"
-              className="flex-1 bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition"
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Form Section */}
+          <div className="lg:col-span-1">
+            <form
+              onSubmit={handleSubmit}
+              className="bg-white shadow-lg rounded-2xl p-8 space-y-5 sticky top-8"
             >
-              {editingId ? "Salvar alterações" : "Cadastrar"}
-            </button>
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">
+                Novo Atleta
+              </h3>
 
-            <button
-              type="button"
-              onClick={async () => {
-                try {
-                  await exportarPDF(atletas);
-                } catch (e) {
-                  console.error(e);
-                  alert("Falha ao exportar PDF");
-                }
-              }}
-              className="flex-1 bg-green-600 text-white p-2 rounded hover:bg-green-700 transition"
-            >
-              {loadingExport ? "Gerando PDF..." : "Exportar PDF"}
-            </button>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Nome *
+                </label>
+                <input
+                  name="nome"
+                  placeholder="Digite o nome completo"
+                  value={novoAtleta.nome}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  CPF *
+                </label>
+                <IMaskInput
+                  mask="000.000.000-00"
+                  name="cpf"
+                  value={novoAtleta.cpf}
+                  onAccept={(value: string) =>
+                    setNovoAtleta({ ...novoAtleta, cpf: value })
+                  }
+                  placeholder="000.000.000-00"
+                  required
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Data de Nascimento *
+                </label>
+                <input
+                  name="dataNascimento"
+                  type="date"
+                  value={novoAtleta.dataNascimento}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Idade
+                </label>
+                <input
+                  name="idade"
+                  type="number"
+                  placeholder="Calculada automaticamente"
+                  value={novoAtleta.idade}
+                  readOnly
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Altura (cm) *
+                  </label>
+                  <input
+                    name="altura"
+                    type="number"
+                    placeholder="Ex: 175"
+                    value={novoAtleta.altura}
+                    onChange={handleChange}
+                    step="0.1"
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Peso (kg) *
+                  </label>
+                  <input
+                    name="peso"
+                    type="number"
+                    placeholder="Ex: 70"
+                    value={novoAtleta.peso}
+                    onChange={handleChange}
+                    step="0.1"
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Endereço *
+                </label>
+                <input
+                  name="endereco"
+                  placeholder="Rua, avenida, etc"
+                  value={novoAtleta.endereco}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Número *
+                </label>
+                <input
+                  name="numero"
+                  placeholder="Número do imóvel"
+                  value={novoAtleta.numero}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Cidade *
+                  </label>
+                  <input
+                    name="cidade"
+                    placeholder="Cidade"
+                    value={novoAtleta.cidade}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Estado *
+                  </label>
+                  <input
+                    name="estado"
+                    placeholder="SP, RJ, etc"
+                    maxLength={2}
+                    value={novoAtleta.estado}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition uppercase"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  CEP *
+                </label>
+                <IMaskInput
+                  mask="00000-000"
+                  name="cep"
+                  value={novoAtleta.cep}
+                  onAccept={(value: string) =>
+                    setNovoAtleta({ ...novoAtleta, cep: value })
+                  }
+                  placeholder="00000-000"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Telefone *
+                </label>
+                <IMaskInput
+                  mask="(00) 00000-0000"
+                  name="telefone"
+                  value={novoAtleta.telefone}
+                  onAccept={(value: string) =>
+                    setNovoAtleta({ ...novoAtleta, telefone: value })
+                  }
+                  placeholder="(00) 00000-0000"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
+                />
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                <button
+                  type="submit"
+                  className="flex-1 bg-linear-to-r from-blue-600 to-blue-700 text-white font-semibold py-3 rounded-lg hover:from-blue-700 hover:to-blue-800 transition transform hover:scale-105 shadow-md"
+                >
+                  {editingId ? "💾 Salvar Alterações" : "➕ Cadastrar"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      await exportarPDF(atletas);
+                    } catch (e) {
+                      console.error(e);
+                      alert("Falha ao exportar PDF");
+                    }
+                  }}
+                  disabled={loadingExport}
+                  className="flex-1 bg-linear-to-r from-green-600 to-green-700 text-white font-semibold py-3 rounded-lg hover:from-green-700 hover:to-green-800 transition transform hover:scale-105 shadow-md disabled:opacity-50"
+                >
+                  {loadingExport ? "⏳ Gerando..." : "📄 Exportar PDF"}
+                </button>
+              </div>
+            </form>
           </div>
-        </form>
 
-        <div className="w-full lg:w-1/2">
-          <h3 className="text-xl font-semibold mb-4">Lista de Atletas</h3>
-          <ul className="space-y-3">
-            {atletas.length === 0 && (
-              <li className="text-sm text-gray-500">
-                Nenhum atleta cadastrado ainda.
-              </li>
-            )}
-            {atletas.map((a) => (
-              <li
-                key={a.id}
-                className="bg-white shadow rounded p-4 text-sm text-gray-700"
-              >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="font-bold text-blue-600">{a.nome}</p>
-                    <p className="text-xs text-gray-500">CPF: {a.cpf}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleEdit(a)}
-                      className="text-sm bg-yellow-400 text-white px-3 py-1 rounded"
-                    >
-                      Editar
-                    </button>
-                    <button
-                      onClick={() => handleDelete(a.id)}
-                      className="text-sm bg-red-500 text-white px-3 py-1 rounded"
-                    >
-                      Excluir
-                    </button>
-                  </div>
-                </div>
+          {/* List Section */}
+          <div className="lg:col-span-2">
+            <div className="bg-white shadow-lg rounded-2xl p-8">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">
+                Lista de Atletas ({atletas.length})
+              </h3>
 
-                <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
-                  <div>
-                    <p className="font-medium">Idade</p>
-                    <p>{a.idade} anos</p>
+              <div className="space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto">
+                {atletas.length === 0 && (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <p className="text-gray-500 text-lg">
+                      📋 Nenhum atleta cadastrado ainda.
+                    </p>
+                    <p className="text-gray-400 text-sm mt-2">
+                      Preencha o formulário e cadastre atletas
+                    </p>
                   </div>
-                  <div>
-                    <p className="font-medium">Telefone</p>
-                    <p>{a.telefone}</p>
-                  </div>
-                </div>
+                )}
 
-                <p className="mt-2 text-sm">
-                  Endereço: {a.endereco}, {a.numero} — {a.cidade}/{a.estado} —
-                  CEP: {a.cep}
-                </p>
-              </li>
-            ))}
-          </ul>
+                {atletas.map((a) => (
+                  <div
+                    key={a.id}
+                    className="bg-linear-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-6 hover:shadow-lg transition transform hover:scale-102"
+                  >
+                    <div className="flex justify-between items-start gap-4">
+                      <div className="flex-1">
+                        <p className="font-bold text-lg text-blue-600">{a.nome}</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          CPF:{" "}
+                          <span className="font-mono">{a.cpf}</span>
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleEdit(a)}
+                          className="bg-yellow-400 hover:bg-yellow-500 text-white font-semibold px-4 py-2 rounded-lg transition shadow-md text-sm"
+                        >
+                          ✏️ Editar
+                        </button>
+                        <button
+                          onClick={() => handleDelete(a.id)}
+                          className="bg-red-500 hover:bg-red-600 text-white font-semibold px-4 py-2 rounded-lg transition shadow-md text-sm"
+                        >
+                          🗑️ Excluir
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-4">
+                      <div className="bg-white rounded-lg p-3">
+                        <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                          Idade
+                        </p>
+                        <p className="text-xl font-bold text-blue-600 mt-1">
+                          {a.idade}{" "}
+                          <span className="text-sm text-gray-500">anos</span>
+                        </p>
+                      </div>
+                      <div className="bg-white rounded-lg p-3">
+                        <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                          Altura
+                        </p>
+                        <p className="text-xl font-bold text-blue-600 mt-1">
+                          {a.altura}{" "}
+                          <span className="text-sm text-gray-500">cm</span>
+                        </p>
+                      </div>
+                      <div className="bg-white rounded-lg p-3">
+                        <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                          Peso
+                        </p>
+                        <p className="text-xl font-bold text-blue-600 mt-1">
+                          {a.peso}{" "}
+                          <span className="text-sm text-gray-500">kg</span>
+                        </p>
+                      </div>
+                      <div className="bg-white rounded-lg p-3">
+                        <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                          Telefone
+                        </p>
+                        <p className="text-lg font-bold text-blue-600 mt-1 font-mono">
+                          {a.telefone}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 bg-white rounded-lg p-3">
+                      <p className="text-sm text-gray-700">
+                        <span className="font-semibold">📍 Endereço:</span> {a.endereco}, {a.numero} — {a.cidade}/{a.estado} — {a.cep}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
