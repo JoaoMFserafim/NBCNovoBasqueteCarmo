@@ -2,17 +2,20 @@ import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 const firebaseConfig = {
 
-  apiKey: "AIzaSyBmhQXw1a0VS9QMifuXFMk4Y1sU0iPNY9E",
+  apiKey: "AIzaSyDwsu7W9_fBM6IUlKsY2y2i5bJXI06Y2Ts",
 
-  authDomain: "nbccadastroatletas-61e51.firebaseapp.com",
+  authDomain: "membrosnbc.firebaseapp.com",
 
-  projectId: "nbccadastroatletas-61e51",
+  projectId: "membrosnbc",
 
-  storageBucket: "nbccadastroatletas-61e51.firebasestorage.app",
+  storageBucket: "membrosnbc.firebasestorage.app",
 
-  messagingSenderId: "1013891072864",
+  messagingSenderId: "649738436291",
 
-  appId: "1:1013891072864:web:ad29e3c4828b1135815405"
+  appId: "1:649738436291:web:a086f4846cd01b14bbac76",
+
+  measurementId: "G-FPJ51N8P11"
+
 
 };
 

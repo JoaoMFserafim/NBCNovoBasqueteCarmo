@@ -34,12 +34,11 @@ export async function deleteAtleta(id: string) {
   return await deleteDoc(ref);
 }
 
-export function subscribeAtletas(callback: (lista: (Atleta & { id: string; createdAt?: Timestamp | null })[]) => void) {
+export function subscribeAtletas(callback: (lista: (Atleta & { id: string })[]) => void) {
   const q = query(atletasCol, orderBy("createdAt", "desc"));
   return onSnapshot(q, (snap) => {
     const items = snap.docs.map((d) => {
       const data = d.data() as any;
-      // converte Timestamp para string se necessário
       return {
         id: d.id,
         nome: data.nome ?? "",
@@ -54,8 +53,11 @@ export function subscribeAtletas(callback: (lista: (Atleta & { id: string; creat
         estado: data.estado ?? "",
         cep: data.cep ?? "",
         telefone: data.telefone ?? "",
+        responsavelLegal: data.responsavelLegal ?? data.responsavel ?? "",
+        cpfAluno: data.cpfAluno ?? "",
+        cpfResponsavel: data.cpfResponsavel ?? "",
         createdAt: data.createdAt ?? null,
-      } as Atleta & { id: string; createdAt?: Timestamp | null };
+      } as Atleta & { id: string; responsavelLegal?: string; cpfAluno?: string; cpfResponsavel?: string };
     });
     callback(items);
   });

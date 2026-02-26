@@ -2,16 +2,8 @@
 import React, { useEffect, useState } from "react";
 import { IMaskInput } from "react-imask";
 import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import type { Atleta } from "../../Types/Atleta";
-import {
-  addAtleta,
-  updateAtleta,
-  deleteAtleta,
-  subscribeAtletas,
-} from "../../services/atletasSer";
-
-/** Ajuste se necessário: coloque logo em public/logo.png */
+import { addAtleta, updateAtleta, deleteAtleta, subscribeAtletas } from "../../services/atletasSer";
 const logoUrl = "/logo.png";
 
 function calcularIdade(dataNascimento: string): number {
@@ -41,24 +33,34 @@ async function fetchImageAsDataUrl(url: string): Promise<string | null> {
   }
 }
 
-type AtletaLocal = Atleta & { id?: string };
+type CadastroAluno = {
+  nome: string;
+  dataNascimento: string;
+  idade: number;
+  responsavelLegal: string;
+  telefone: string;
+  cpfAluno: string;
+  cpfResponsavel: string;
+};
+
+function getFirebaseErrorMessage(err: unknown) {
+  const code = (err as any)?.code;
+  if (code === "permission-denied") {
+    return "Permissão insuficiente no Firestore. Verifique as regras de segurança.";
+  }
+  return "Erro ao salvar atleta. Veja o console.";
+}
 
 export default function CadastroAtleta() {
   const [atletas, setAtletas] = useState<(Atleta & { id: string })[]>([]);
-  const [novoAtleta, setNovoAtleta] = useState<AtletaLocal>({
-    id: "",
+  const [novoAtleta, setNovoAtleta] = useState<CadastroAluno>({
     nome: "",
-    cpf: "",
     dataNascimento: "",
     idade: 0,
-    altura: "",
-    peso: "",
-    endereco: "",
-    numero: "",
-    cidade: "",
-    estado: "",
-    cep: "",
+    responsavelLegal: "",
     telefone: "",
+    cpfAluno: "",
+    cpfResponsavel: "",
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [loadingExport, setLoadingExport] = useState(false);
@@ -72,13 +74,7 @@ export default function CadastroAtleta() {
     const { name, value } = e.target;
     if (name === "dataNascimento") {
       const idadeCalculada = calcularIdade(value);
-      setNovoAtleta({
-        ...novoAtleta,
-        dataNascimento: value,
-        idade: idadeCalculada,
-      });
-    } else if (name === "altura" || name === "peso") {
-      setNovoAtleta({ ...novoAtleta, [name]: Number(value) });
+      setNovoAtleta({ ...novoAtleta, dataNascimento: value, idade: idadeCalculada });
     } else {
       setNovoAtleta({ ...novoAtleta, [name]: value });
     }
@@ -87,51 +83,57 @@ export default function CadastroAtleta() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      if (
+        novoAtleta.cpfAluno &&
+        novoAtleta.cpfResponsavel &&
+        novoAtleta.cpfAluno === novoAtleta.cpfResponsavel
+      ) {
+        alert("O CPF do aluno não pode ser o mesmo do responsável.");
+        return;
+      }
+      const payload = {
+        nome: novoAtleta.nome,
+        dataNascimento: novoAtleta.dataNascimento,
+        idade: novoAtleta.idade,
+        responsavelLegal: novoAtleta.responsavelLegal,
+        responsavel: novoAtleta.responsavelLegal,
+        telefone: novoAtleta.telefone,
+        cpfAluno: novoAtleta.cpfAluno,
+        cpfResponsavel: novoAtleta.cpfResponsavel,
+      };
       if (editingId) {
-        await updateAtleta(editingId, novoAtleta);
+        await updateAtleta(editingId, payload as any);
         setEditingId(null);
       } else {
-        const { id, ...payload } = novoAtleta;
-        await addAtleta(payload);
+        await addAtleta(payload as any);
       }
       setNovoAtleta({
-        id: "",
         nome: "",
-        cpf: "",
         dataNascimento: "",
         idade: 0,
-        altura: "",
-        peso: "",
-        endereco: "",
-        numero: "",
-        cidade: "",
-        estado: "",
-        cep: "",
+        responsavelLegal: "",
         telefone: "",
+        cpfAluno: "",
+        cpfResponsavel: "",
       });
     } catch (err) {
       console.error("Erro ao salvar atleta:", err);
-      alert("Erro ao salvar atleta. Veja o console.");
+      alert(getFirebaseErrorMessage(err));
     }
   };
 
   const handleEdit = (a: Atleta & { id: string }) => {
     setEditingId(a.id);
     setNovoAtleta({
-      ...a,
-      id: a.id,
+      nome: a.nome ?? "",
+      dataNascimento: a.dataNascimento ?? "",
+      idade: a.idade ?? 0,
+      responsavelLegal: (a as any).responsavelLegal ?? (a as any).responsavel ?? "",
+      telefone: a.telefone ?? "",
+      cpfAluno: (a as any).cpfAluno ?? "",
+      cpfResponsavel: (a as any).cpfResponsavel ?? "",
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!confirm("Deseja realmente excluir este atleta?")) return;
-    try {
-      await deleteAtleta(id);
-    } catch (err) {
-      console.error("Erro ao deletar:", err);
-      alert("Erro ao deletar atleta. Veja o console.");
-    }
   };
 
   const exportarPDF = async (lista: (Atleta & { id: string })[]) => {
@@ -139,98 +141,98 @@ export default function CadastroAtleta() {
     try {
       const doc = new jsPDF({ unit: "pt", format: "a4" });
       const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
       const marginLeft = 40;
       const marginRight = 40;
+      const marginTop = 40;
+      const marginBottom = 40;
+      const contentWidth = pageWidth - marginLeft - marginRight;
+      const contentHeight = pageHeight - marginTop - marginBottom;
 
       const logoDataUrl = await fetchImageAsDataUrl(logoUrl).catch((e) => {
         console.warn("Erro ao buscar logo:", e);
         return null;
       });
 
-      const header = () => {
-        const y = 30;
+      const renderBilhete = (a: Atleta & { id: string }, index: number) => {
+        if (index > 0) doc.addPage();
+
+        const x = marginLeft;
+        const y = marginTop;
+
+        // Card border
+        doc.setDrawColor(120);
+        doc.setLineWidth(0.8);
+        doc.rect(x, y, contentWidth, contentHeight);
+
+        // Header
+        let cursorY = y + 30;
         if (logoDataUrl) {
-          const logoWidth = 60;
-          const logoHeight = 60;
           try {
-            doc.addImage(
-              logoDataUrl,
-              "PNG",
-              marginLeft,
-              y - 10,
-              logoWidth,
-              logoHeight,
-            );
+            doc.addImage(logoDataUrl, "PNG", x + 10, y + 10, 40, 40);
           } catch (e) {
             console.warn("addImage falhou:", e);
           }
         }
-        doc.setFontSize(18);
-        doc.setTextColor(41, 128, 185);
-        const titleX = logoDataUrl ? marginLeft + 80 : marginLeft;
-        doc.text("Lista de Atletas", titleX, y + 30);
-        doc.setDrawColor(230, 230, 230);
+        doc.setFontSize(16);
+        doc.setTextColor(0);
+        doc.text("Bilhete de Autorização", x + 60, y + 35);
+
+        // Divider
+        doc.setDrawColor(200);
         doc.setLineWidth(0.5);
-        doc.line(marginLeft, y + 45, pageWidth - marginRight, y + 45);
+        doc.line(x + 10, y + 60, x + contentWidth - 10, y + 60);
+
+        // Body
+        cursorY = y + 85;
+        doc.setFontSize(12);
+
+        const responsavel =
+          (a as any).responsavelLegal ?? (a as any).responsavel ?? "-";
+
+        doc.text(`Nome do aluno: ${a.nome || "-"}`, x + 10, cursorY);
+        cursorY += 18;
+        doc.text(`CPF do aluno: ${(a as any).cpfAluno || "-"}`, x + 10, cursorY);
+        cursorY += 18;
+        doc.text(`Data de nascimento: ${a.dataNascimento || "-"}`, x + 10, cursorY);
+        cursorY += 18;
+        doc.text(`Idade: ${a.idade?.toString() || "-"}`, x + 10, cursorY);
+        cursorY += 18;
+        doc.text(`Responsável legal: ${responsavel}`, x + 10, cursorY);
+        cursorY += 18;
+        doc.text(`CPF do responsável: ${(a as any).cpfResponsavel || "-"}`, x + 10, cursorY);
+        cursorY += 18;
+        doc.text(`Telefone de contato: ${a.telefone || "-"}`, x + 10, cursorY);
+        cursorY += 22;
+
+        // Divider
+        doc.line(x + 10, cursorY, x + contentWidth - 10, cursorY);
+        cursorY += 18;
+
+        // Authorization text
+        doc.setFontSize(11);
+        doc.text(
+          "Declaro responsável legal pela criança acima, autorizo sua participação nas atividades do Projeto de Basquete. Estou ciente de que se trata de atividades esportivas e recreativas, e assumo a responsabilidade pela participação da criança.",
+          x + 10,
+          cursorY,
+          { maxWidth: contentWidth - 20 }
+        );
+        cursorY += 40;
+
+        // Signature / date lines
+        doc.setLineWidth(0.5);
+        doc.line(x + 10, cursorY, x + contentWidth - 10, cursorY);
+        doc.setFontSize(10);
+        doc.text("Assinatura do responsável", x + 10, cursorY + 12);
+
+        const dateY = cursorY + 40;
+        doc.line(x + 10, dateY, x + 180, dateY);
+        doc.text("Data", x + 10, dateY + 12);
       };
 
-      const colunas = [
-        "Nome",
-        "CPF",
-        "Data Nasc.",
-        "Idade",
-        "Altura",
-        "Peso",
-        "Endereço",
-        "Número",
-        "Cidade",
-        "Estado",
-        "CEP",
-        "Telefone",
-      ];
+      lista.forEach(renderBilhete);
 
-      const linhas = lista.map((a) => [
-        a.nome || "-",
-        a.cpf || "-",
-        a.dataNascimento || "-",
-        a.idade?.toString() || "-",
-        a.altura?.toString() || "-",
-        a.peso?.toString() || "-",
-        a.endereco || "-",
-        a.numero || "-",
-        a.cidade || "-",
-        a.estado || "-",
-        a.cep || "-",
-        a.telefone || "-",
-      ]);
-
-      (autoTable as any)(doc, {
-        head: [colunas],
-        body: linhas,
-        startY: 100,
-        margin: { left: marginLeft, right: marginRight },
-        styles: { fontSize: 8, cellPadding: 4 },
-        headStyles: {
-          fillColor: [41, 128, 185],
-          textColor: [255, 255, 255],
-          halign: "center",
-        },
-        didDrawPage: (data: any) => {
-          const pageCount = doc.getNumberOfPages();
-          header();
-          const pageHeight = doc.internal.pageSize.getHeight();
-          doc.setFontSize(10);
-          doc.setTextColor(120);
-          const pageText = `Página ${data.pageNumber} de ${pageCount}`;
-          doc.text(
-            pageText,
-            pageWidth - marginRight - doc.getTextWidth(pageText),
-            pageHeight - 30,
-          );
-        },
-      });
-
-      doc.save("atletas.pdf");
+      doc.save("bilhetes.pdf");
     } catch (err) {
       console.error("exportarPDF erro:", err);
       alert("Erro ao gerar PDF. Veja o console para detalhes.");
@@ -238,6 +240,7 @@ export default function CadastroAtleta() {
       setLoadingExport(false);
     }
   };
+
   return (
     <div className="min-h-screen bg-gray-50 py-6 px-4">
       <div className="max-w-7xl mx-auto">
@@ -260,30 +263,13 @@ export default function CadastroAtleta() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nome
+                  Nome do aluno
                 </label>
                 <input
                   name="nome"
                   placeholder="Nome completo"
                   value={novoAtleta.nome}
                   onChange={handleChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  CPF
-                </label>
-                <IMaskInput
-                  mask="000.000.000-00"
-                  name="cpf"
-                  value={novoAtleta.cpf}
-                  onAccept={(value: string) =>
-                    setNovoAtleta({ ...novoAtleta, cpf: value })
-                  }
-                  placeholder="000.000.000-00"
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
@@ -299,19 +285,7 @@ export default function CadastroAtleta() {
                   value={novoAtleta.dataNascimento}
                   onChange={handleChange}
                   required
-                  className="
-    w-full
-    h-11
-    px-3
-    border
-    border-gray-300
-    rounded-md
-    text-sm
-    focus:outline-none
-    focus:ring-2
-    focus:ring-blue-500
-    focus:border-blue-500
-  "
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
@@ -328,110 +302,23 @@ export default function CadastroAtleta() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Altura (cm)
-                  </label>
-                  <input
-                    name="altura"
-                    type="number"
-                    placeholder="175"
-                    value={novoAtleta.altura}
-                    onChange={handleChange}
-                    step="0.1"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Peso (kg)
-                  </label>
-                  <input
-                    name="peso"
-                    type="number"
-                    placeholder="70"
-                    value={novoAtleta.peso}
-                    onChange={handleChange}
-                    step="0.1"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Endereço
+                  Responsável legal
                 </label>
                 <input
-                  name="endereco"
-                  placeholder="Rua, avenida"
-                  value={novoAtleta.endereco}
+                  name="responsavelLegal"
+                  placeholder="Nome do responsável"
+                  value={novoAtleta.responsavelLegal}
                   onChange={handleChange}
+                  required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Número
-                </label>
-                <input
-                  name="numero"
-                  placeholder="123"
-                  value={novoAtleta.numero}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Cidade
-                  </label>
-                  <input
-                    name="cidade"
-                    placeholder="São Paulo"
-                    value={novoAtleta.cidade}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Estado
-                  </label>
-                  <input
-                    name="estado"
-                    placeholder="SP"
-                    maxLength={2}
-                    value={novoAtleta.estado}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  CEP
-                </label>
-                <IMaskInput
-                  mask="00000-000"
-                  name="cep"
-                  value={novoAtleta.cep}
-                  onAccept={(value: string) =>
-                    setNovoAtleta({ ...novoAtleta, cep: value })
-                  }
-                  placeholder="00000-000"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Telefone
+                  Telefone de contato
                 </label>
                 <IMaskInput
                   mask="(00) 00000-0000"
@@ -441,6 +328,38 @@ export default function CadastroAtleta() {
                     setNovoAtleta({ ...novoAtleta, telefone: value })
                   }
                   placeholder="(11) 98765-4321"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  CPF do aluno
+                </label>
+                <IMaskInput
+                  mask="000.000.000-00"
+                  name="cpfAluno"
+                  value={novoAtleta.cpfAluno}
+                  onAccept={(value: string) =>
+                    setNovoAtleta({ ...novoAtleta, cpfAluno: value })
+                  }
+                  placeholder="000.000.000-00"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  CPF do responsável
+                </label>
+                <IMaskInput
+                  mask="000.000.000-00"
+                  name="cpfResponsavel"
+                  value={novoAtleta.cpfResponsavel}
+                  onAccept={(value: string) =>
+                    setNovoAtleta({ ...novoAtleta, cpfResponsavel: value })
+                  }
+                  placeholder="000.000.000-00"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
@@ -485,67 +404,83 @@ export default function CadastroAtleta() {
                   </div>
                 )}
 
-                {atletas.map((a) => (
-                  <div
-                    key={a.id}
-                    className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition"
-                  >
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <p className="font-semibold text-gray-800">{a.nome}</p>
-                        <p className="text-sm text-gray-500">CPF: {a.cpf}</p>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleEdit(a)}
-                          className="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded text-sm font-medium transition"
-                        >
-                          Editar
-                        </button>
-                        <button
-                          onClick={() => handleDelete(a.id)}
-                          className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm font-medium transition"
-                        >
-                          Excluir
-                        </button>
-                      </div>
-                    </div>
+                {atletas.map((a) => {
+                  const responsavel =
+                    (a as any).responsavelLegal ?? (a as any).responsavel ?? "";
+                    const handleDelete = async (id: string): Promise<void> => {
+                    const ok = window.confirm("Tem certeza que deseja excluir este atleta?");
+                    if (!ok) return;
+                    try {
+                      await deleteAtleta(id);
+                    } catch (err) {
+                      console.error("Erro ao excluir atleta:", err);
+                      alert("Erro ao excluir atleta. Veja o console.");
+                    }
+                    };
 
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
-                      <div className="bg-gray-50 rounded p-2">
-                        <p className="text-xs text-gray-600 mb-1">Idade</p>
-                        <p className="font-semibold text-gray-800">
-                          {a.idade} anos
-                        </p>
+                  return (
+                    <div
+                      key={a.id}
+                      className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition"
+                    >
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <p className="font-semibold text-gray-800">{a.nome}</p>
+                          <p className="text-sm text-gray-500">
+                            Responsável: {responsavel}
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleEdit(a)}
+                            className="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded text-sm font-medium transition"
+                          >
+                            Editar
+                          </button>
+                          <button
+                            onClick={() => handleDelete(a.id)}
+                            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm font-medium transition"
+                          >
+                            Excluir
+                          </button>
+                        </div>
                       </div>
-                      <div className="bg-gray-50 rounded p-2">
-                        <p className="text-xs text-gray-600 mb-1">Altura</p>
-                        <p className="font-semibold text-gray-800">
-                          {a.altura} cm
-                        </p>
-                      </div>
-                      <div className="bg-gray-50 rounded p-2">
-                        <p className="text-xs text-gray-600 mb-1">Peso</p>
-                        <p className="font-semibold text-gray-800">
-                          {a.peso} kg
-                        </p>
-                      </div>
-                      <div className="bg-gray-50 rounded p-2">
-                        <p className="text-xs text-gray-600 mb-1">Telefone</p>
-                        <p className="font-semibold text-gray-800 text-sm">
-                          {a.telefone}
-                        </p>
-                      </div>
-                    </div>
 
-                    <div className="bg-gray-50 rounded p-2">
-                      <p className="text-sm text-gray-700">
-                        {a.endereco}, {a.numero} - {a.cidade}/{a.estado} -{" "}
-                        {a.cep}
-                      </p>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-3">
+                        <div className="bg-gray-50 rounded p-2">
+                          <p className="text-xs text-gray-600 mb-1">Nascimento</p>
+                          <p className="font-semibold text-gray-800">
+                            {a.dataNascimento || "-"}
+                          </p>
+                        </div>
+                        <div className="bg-gray-50 rounded p-2">
+                          <p className="text-xs text-gray-600 mb-1">Idade</p>
+                          <p className="font-semibold text-gray-800">
+                            {a.idade ?? "-"} anos
+                          </p>
+                        </div>
+                        <div className="bg-gray-50 rounded p-2">
+                          <p className="text-xs text-gray-600 mb-1">Telefone</p>
+                          <p className="font-semibold text-gray-800 text-sm">
+                            {a.telefone || "-"}
+                          </p>
+                        </div>
+                        <div className="bg-gray-50 rounded p-2">
+                          <p className="text-xs text-gray-600 mb-1">CPF do aluno</p>
+                          <p className="font-semibold text-gray-800">
+                            {(a as any).cpfAluno || "-"}
+                          </p>
+                        </div>
+                        <div className="bg-gray-50 rounded p-2">
+                          <p className="text-xs text-gray-600 mb-1">CPF do responsável</p>
+                          <p className="font-semibold text-gray-800">
+                            {(a as any).cpfResponsavel || "-"}
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
